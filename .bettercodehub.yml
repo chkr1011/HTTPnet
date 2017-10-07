@@ -1,0 +1,7 @@
+exclude:
+- /Frameworks/.*
+- /HTTPnet.TestApp.NetCore/Program.cs
+- /Tests/HTTPnet.TestApp.NetFramework/.*
+component_depth: 1
+languages:
+- csharp
