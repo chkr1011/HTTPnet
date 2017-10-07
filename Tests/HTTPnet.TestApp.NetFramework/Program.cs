@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using HTTPnet.Core.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +18,7 @@ namespace HTTPnet.TestApp.NetFramework
         {
             HttpNetTrace.TraceMessagePublished += (s, e) => Console.WriteLine(e);
 
-            var pipeline = new HttpContextPipeline();
+            var pipeline = new HttpContextPipeline(new SimpleExceptionHandler());
 
             pipeline.Add(new RequestBodyHandler());
             pipeline.Add(new TraceHandler());
@@ -35,8 +37,22 @@ namespace HTTPnet.TestApp.NetFramework
             Thread.Sleep(Timeout.Infinite);
         }
 
+        public class SimpleExceptionHandler : IHttpContextPipelineExceptionHandler
+        {
+            public Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
+            {
+                httpContext.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
 
-        class SimpleHttpRequestHandler : IHttpContextPipelineHandler
+                httpContext.Response.Body = new MemoryStream(Encoding.UTF8.GetBytes(exception.ToString()));
+                httpContext.Response.Headers[HttpHeaderName.ContentLength] = httpContext.Response.Body.Length.ToString(CultureInfo.InvariantCulture);
+
+                httpContext.CloseConnection = true;
+                
+                return Task.FromResult(0);
+            }
+        }
+
+        public class SimpleHttpRequestHandler : IHttpContextPipelineHandler
         {
             public Task ProcessRequestAsync(HttpContextPipelineHandlerContext context)
             {

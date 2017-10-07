@@ -6,6 +6,6 @@ namespace HTTPnet.Core.Pipeline
 {
     public interface IHttpContextPipelineExceptionHandler
     {
-        Task HandleException(HttpContext httpContext, Exception exception);
+        Task HandleExceptionAsync(HttpContext httpContext, Exception exception);
     }
 }
