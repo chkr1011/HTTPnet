@@ -28,9 +28,6 @@ namespace HTTPnet.Core.Pipeline.Handlers
         public Task ProcessResponseAsync(HttpContextPipelineHandlerContext context)
         {
             HttpNetTrace.Verbose(context.HttpContext.Response.StatusCode + " " + context.HttpContext.Response.ReasonPhrase);
-
-
-            context.HttpContext.CloseConnection = true;
             return Task.FromResult(0);
         }
     }

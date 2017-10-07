@@ -4,22 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HTTPnet.Core.Communication;
+using HTTPnet.Core.WebSockets.Protocol;
 
 namespace HTTPnet.Core.WebSockets
 {
     public class WebSocketSession : ISessionHandler
     {
-        private const int RequestBufferSize = 16 * 1024;
-
-        private readonly Guid _sessionUid = Guid.NewGuid();
         private readonly List<WebSocketFrame> _frameQueue = new List<WebSocketFrame>();
+        private readonly WebSocketFrameWriter _webSocketFrameWriter;
         private readonly ClientSession _clientSession;
-
-        private byte[] _overhead = new byte[0];
-
+        
         public WebSocketSession(ClientSession clientSession)
         {
             _clientSession = clientSession ?? throw new ArgumentNullException(nameof(clientSession));
+
+            _webSocketFrameWriter = new WebSocketFrameWriter(_clientSession.Client.SendStream);
         }
 
         public event EventHandler<WebSocketMessageReceivedEventArgs> MessageReceived;
@@ -28,34 +27,19 @@ namespace HTTPnet.Core.WebSockets
 
         public async Task ProcessAsync()
         {
-            var buffer = new byte[RequestBufferSize];
-            await _clientSession.Client.ReceiveStream.ReadAsync(buffer, 0, buffer.Length);
-
-            var data = new List<byte>(_overhead);
-            _overhead = new byte[0];
-            data.AddRange(buffer.ToArray());
-
-            var parseWebSocketFrameResult = WebSocketFrame.Parse(data.ToArray());
-            if (parseWebSocketFrameResult.WebSocketFrame == null)
-            {
-                _overhead = parseWebSocketFrameResult.Overhead;
-                return;
-            }
-
-            var webSocketFrame = parseWebSocketFrameResult.WebSocketFrame;
+            var webSocketFrame = await new WebSocketFrameReader(_clientSession.Client.ReceiveStream).ReadAsync(_clientSession.CancellationToken).ConfigureAwait(false);
             switch (webSocketFrame.Opcode)
             {
                 case WebSocketOpcode.Ping:
                     {
                         webSocketFrame.Opcode = WebSocketOpcode.Pong;
-                        await SendAsync(webSocketFrame);
-
+                        await _webSocketFrameWriter.WriteAsync(webSocketFrame, _clientSession.CancellationToken).ConfigureAwait(false);
                         return;
                     }
 
                 case WebSocketOpcode.ConnectionClose:
                     {
-                        CloseAsync().Wait();
+                        await CloseAsync().ConfigureAwait(false);
                         return;
                     }
 
@@ -79,11 +63,8 @@ namespace HTTPnet.Core.WebSockets
         public Task CloseAsync()
         {
             _clientSession.Close();
-            //await _clientSocket.CancelIOAsync();
             Closed?.Invoke(this, EventArgs.Empty);
-
-            //_log.Verbose($"WebSocket session '{_sessionUid}' closed.");
-
+            
             return Task.FromResult(0);
         }
 
@@ -91,14 +72,22 @@ namespace HTTPnet.Core.WebSockets
         {
             if (text == null) throw new ArgumentNullException(nameof(text));
 
-            await SendAsync(WebSocketFrame.Create(text));
+            await _webSocketFrameWriter.WriteAsync(new WebSocketFrame
+            {
+                Opcode = WebSocketOpcode.Text,
+                Payload = Encoding.UTF8.GetBytes(text)
+            }, _clientSession.CancellationToken).ConfigureAwait(false);
         }
 
         public async Task SendAsync(byte[] data)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
 
-            await SendAsync(WebSocketFrame.Create(data));
+            await _webSocketFrameWriter.WriteAsync(new WebSocketFrame
+            {
+                Opcode = WebSocketOpcode.Binary,
+                Payload = data
+            }, _clientSession.CancellationToken).ConfigureAwait(false);
         }
 
         private WebSocketMessage GenerateMessage()
@@ -156,14 +145,6 @@ namespace HTTPnet.Core.WebSockets
                     }
                 }
             }
-        }
-
-        private async Task SendAsync(WebSocketFrame frame)
-        {
-            var frameBuffer = frame.ToByteArray();
-
-            await _clientSession.Client.SendStream.WriteAsync(frameBuffer, 0, frameBuffer.Length, _clientSession.CancellationToken).ConfigureAwait(false);
-            await _clientSession.Client.SendStream.FlushAsync(_clientSession.CancellationToken).ConfigureAwait(false);
         }
     }
 }

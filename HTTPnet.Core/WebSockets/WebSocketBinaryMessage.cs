@@ -6,9 +6,7 @@ namespace HTTPnet.Core.WebSockets
     {
         public WebSocketBinaryMessage(byte[] data)
         {
-            if (data == null) throw new ArgumentNullException(nameof(data));
-
-            Data = data;
+            Data = data ?? throw new ArgumentNullException(nameof(data));
         }
 
         public byte[] Data { get; }

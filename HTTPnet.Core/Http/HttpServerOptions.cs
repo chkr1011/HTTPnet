@@ -16,6 +16,6 @@
 
         public int ReceiveChunkSize { get; set; } = 8 * 1024; // 8 KB
 
-        public IHttpRequestHandler RequestHandler { get; set; }
+        public IHttpRequestHandler HttpRequestHandler { get; set; }
     }
 }

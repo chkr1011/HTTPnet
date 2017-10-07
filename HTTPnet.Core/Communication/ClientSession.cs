@@ -3,8 +3,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HTTPnet.Core.Http;
-using HTTPnet.Core.Http.Raw;
-using HTTPnet.Core.WebSockets;
 
 namespace HTTPnet.Core.Communication
 {
@@ -44,15 +42,9 @@ namespace HTTPnet.Core.Communication
             return _httpServer.HandleHttpRequestAsync(httpContext);
         }
 
-        public void UpgradeToWebSocketSession(RawHttpRequest httpRequest)
+        public void SwitchProtocol(ISessionHandler sessionHandler)
         {
-            var webSocketSession = new WebSocketSession(this);
-            _sessionHandler = webSocketSession;
-
-            if (!_httpServer.HandleConnectedWebSocket(httpRequest, webSocketSession))
-            {
-                Close();
-            }
+            _sessionHandler = sessionHandler ?? throw new ArgumentNullException(nameof(sessionHandler));
         }
 
         public void Close()

@@ -1,14 +1,16 @@
-﻿using System;
-using System.Globalization;
-using System.IO;
-using System.Text;
+﻿using HTTPnet.Core.Diagnostics;
 using HTTPnet.Core.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using HTTPnet.Core.Diagnostics;
 using HTTPnet.Core.Pipeline;
 using HTTPnet.Core.Pipeline.Handlers;
+using HTTPnet.Core.WebSockets;
 using HTTPnet.TestApp.NetFramework.Processors;
+using System;
+using System.Globalization;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HTTPnet.TestApp.NetFramework
 {
@@ -22,19 +24,38 @@ namespace HTTPnet.TestApp.NetFramework
 
             pipeline.Add(new RequestBodyHandler());
             pipeline.Add(new TraceHandler());
+            pipeline.Add(new WebSocketRequestHandler(ComputeSha1Hash, SessionCreated));
             pipeline.Add(new ResponseBodyLengthHandler());
             pipeline.Add(new ResponseCompressionHandler());
             pipeline.Add(new SimpleHttpRequestHandler());
             
             var options = new HttpServerOptions
             {
-                RequestHandler = pipeline
+                HttpRequestHandler = pipeline
             };
 
             var httpServer = new HttpServerFactory().CreateHttpServer();
             httpServer.StartAsync(options).GetAwaiter().GetResult();
 
             Thread.Sleep(Timeout.Infinite);
+        }
+
+        private static void SessionCreated(WebSocketSession webSocketSession)
+        {
+            webSocketSession.MessageReceived += async (s, e) =>
+            {
+                Console.WriteLine(((WebSocketTextMessage) e.Message).Text);
+
+                await webSocketSession.SendAsync("Reply...");
+            };
+        }
+
+        private static byte[] ComputeSha1Hash(byte[] source)
+        {
+            using (var sha1 = SHA1.Create())
+            {
+                return sha1.ComputeHash(source);
+            }
         }
 
         public class SimpleExceptionHandler : IHttpContextPipelineExceptionHandler

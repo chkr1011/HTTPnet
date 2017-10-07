@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using HTTPnet.Core.Communication;
 using HTTPnet.Core.Diagnostics;
 using HTTPnet.Core.Http;
-using HTTPnet.Core.Http.Raw;
-using HTTPnet.Core.WebSockets;
 
 namespace HTTPnet.Core
 {
@@ -21,11 +19,11 @@ namespace HTTPnet.Core
         {
             _socketWrapperFactory = socketWrapperFactory ?? throw new ArgumentNullException(nameof(socketWrapperFactory));
         }
-
+        
         public async Task StartAsync(HttpServerOptions options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            if (_options.RequestHandler == null) throw new InvalidOperationException("HTTP request handler not set.");
+            if (_options.HttpRequestHandler == null) throw new InvalidOperationException("HTTP request handler not set.");
 
             try
             {
@@ -111,12 +109,6 @@ namespace HTTPnet.Core
                 }
                 catch (Exception exception)
                 {
-                    ////var comException = exception as COMException;
-                    ////if (comException?.HResult == -2147014843)
-                    ////{
-                    ////    return;
-                    ////}
-
                     HttpNetTrace.Verbose("Error while handling HTTP client requests. " + exception);
                 }
                 finally
@@ -129,7 +121,7 @@ namespace HTTPnet.Core
 
         internal async Task HandleHttpRequestAsync(HttpContext httpContext)
         {
-            var handler = _options.RequestHandler;
+            var handler = _options.HttpRequestHandler;
             if (handler == null)
             {
                 return;
@@ -144,13 +136,6 @@ namespace HTTPnet.Core
                 HttpNetTrace.Verbose(exception.ToString());
                 await handler.HandleUnhandledExceptionAsync(httpContext, exception);
             }
-        }
-
-        internal bool HandleConnectedWebSocket(RawHttpRequest httpRequest, WebSocketSession webSocketSession)
-        {
-            var eventArgs = new WebSocketConnectedEventArgs(httpRequest, webSocketSession);
-            //WebSocketConnected?.Invoke(this, eventArgs);
-            return eventArgs.IsHandled;
         }
     }
 }

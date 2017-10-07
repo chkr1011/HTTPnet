@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using HTTPnet.Core.Diagnostics;
 using HTTPnet.Core.Exceptions;
 
 namespace HTTPnet.Core.Http.Raw
@@ -25,39 +24,27 @@ namespace HTTPnet.Core.Http.Raw
 
         public int BufferLength => _buffer.Count;
 
-        public async Task<RawHttpRequest> TryReadAsync(CancellationToken cancellationToken)
+        public async Task<RawHttpRequest> ReadAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                await FetchChunk(cancellationToken).ConfigureAwait(false);
+            await FetchChunk(cancellationToken).ConfigureAwait(false);
 
-                var statusLine = ReadLine();
-                var statusLineItems = statusLine.Split(' ');
+            var statusLine = ReadLine();
+            var statusLineItems = statusLine.Split(' ');
 
-                if (statusLineItems.Length != 3)
-                {
-                    throw new HttpRequestInvalidException();
-                }
+            if (statusLineItems.Length != 3)
+            {
+                throw new HttpRequestInvalidException();
+            }
 
-                var request = new RawHttpRequest
-                {
-                    Method = statusLineItems[0].ToUpperInvariant(),
-                    Uri = statusLineItems[1],
-                    Version = statusLineItems[2].ToUpperInvariant(),
-                    Headers = ParseHeaders()
-                };
-                
-                return request;
-            }
-            catch (OperationCanceledException)
+            var request = new RawHttpRequest
             {
-                return null;
-            }
-            catch (Exception exception)
-            {
-                HttpNetTrace.Verbose(exception.ToString());
-                return null;
-            }
+                Method = statusLineItems[0].ToUpperInvariant(),
+                Uri = statusLineItems[1],
+                Version = statusLineItems[2].ToUpperInvariant(),
+                Headers = ParseHeaders()
+            };
+
+            return request;
         }
 
         public async Task FetchChunk(CancellationToken cancellationToken)

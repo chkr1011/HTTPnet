@@ -1,6 +1,6 @@
-﻿namespace HTTPnet.Core.WebSockets
+﻿namespace HTTPnet.Core.WebSockets.Protocol
 {
-    public enum WebSocketOpcode : byte
+    public enum WebSocketOpcode
     {
         Continuation = 0,
         Text = 1,
