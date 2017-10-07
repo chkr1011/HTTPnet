@@ -9,7 +9,7 @@
     <projectUrl>https://github.com/chkr1011/HTTPnet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/chkr1011/HTTPnet/master/Images/Logo_128x128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>HTTPnet is a .NET library which includes a basic HTTP server.</description>
+    <description>HTTPnet is a .NET library for HTTP based communication. It provides at HTTP server.</description>
     <releaseNotes>* Initial version
     </releaseNotes>
     <copyright>Copyright Christian Kratky 2017</copyright>
