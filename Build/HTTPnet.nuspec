@@ -9,11 +9,11 @@
     <projectUrl>https://github.com/chkr1011/HTTPnet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/chkr1011/HTTPnet/master/Images/Logo_128x128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>HTTPnet is a .NET library for HTTP based communication. It provides at HTTP server.</description>
+    <description>HTTPnet is a .NET library for HTTP and WebSocket based communication. It provides a HTTP/WebSocket server and a powerful processing pipeline for HTTP request and their responses.</description>
     <releaseNotes>* Initial version
     </releaseNotes>
     <copyright>Copyright Christian Kratky 2017</copyright>
-    <tags>HTTP Server NETStandard IoT InternetOfThings REST MVC Internet Ajax Web HTML JavaScript</tags> 
+    <tags>HTTP Server NETStandard IoT InternetOfThings REST MVC Internet Ajax Web HTML JavaScript WebSocket WS</tags> 
     <dependencies>
 
       <group targetFramework="netstandard1.3">
