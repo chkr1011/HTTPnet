@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using HTTPnet.Core.WebSockets.Protocol;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json.Linq;
 
 namespace HTTPnet.Core.Tests
 {
@@ -12,18 +11,14 @@ namespace HTTPnet.Core.Tests
     public class WebSocketFrameTests
     {
         [TestMethod]
-        public async void WebSocketFrame_Simple()
+        public void WebSocketFrame_Simple()
         {
-            var payload = new JObject
-            {
-                ["Hello"] = "World"
-            };
-
-            var payloadBuffer = Encoding.UTF8.GetBytes(payload.ToString());
+            var payload = "{\r\n  \"Hello\": \"World\"\r\n}";
+            var payloadBuffer = Encoding.UTF8.GetBytes(payload);
             var webSocketFrame = new WebSocketFrame { Opcode = WebSocketOpcode.Binary, Payload = payloadBuffer };
 
             var memoryStream = new MemoryStream();
-            await new WebSocketFrameWriter(memoryStream).WriteAsync(webSocketFrame, CancellationToken.None);
+            new WebSocketFrameWriter(memoryStream).WriteAsync(webSocketFrame, CancellationToken.None).Wait();
             var result = memoryStream.ToArray();
 
             var expected = Convert.FromBase64String("ghh7DQogICJIZWxsbyI6ICJXb3JsZCINCn0=");
@@ -32,19 +27,14 @@ namespace HTTPnet.Core.Tests
         }
 
         [TestMethod]
-        public async void WebSocketFrame_LargePayload()
+        public void WebSocketFrame_LargePayload()
         {
-            var payload = new JObject
-            {
-                ["Hello12121212121212121212121212121212121212121212121212121AAAAAAAAAAAAAAA"] =
-                    "World56565656565656565656565656565656565656565656565BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCC"
-            };
-
+            var payload = "{\r\n  \"Hello12121212121212121212121212121212121212121212121212121AAAAAAAAAAAAAAA\": \"World56565656565656565656565656565656565656565656565BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCC\"\r\n}";
             var payloadBuffer = Encoding.UTF8.GetBytes(payload.ToString());
             var webSocketFrame = new WebSocketFrame { Opcode = WebSocketOpcode.Binary, Payload = payloadBuffer };
 
             var memoryStream = new MemoryStream();
-            await new WebSocketFrameWriter(memoryStream).WriteAsync(webSocketFrame, CancellationToken.None);
+            new WebSocketFrameWriter(memoryStream).WriteAsync(webSocketFrame, CancellationToken.None).Wait();
             var result = memoryStream.ToArray();
 
             var expected = Convert.FromBase64String("gn4As3sNCiAgIkhlbGxvMTIxMjEyMTIxMjEyMTIxMjEyMTIxMjEyMTIxMjEyMTIxMjEyMTIxMjEyMTIxMjEyMTIxMjFBQUFBQUFBQUFBQUFBQUEiOiAiV29ybGQ1NjU2NTY1NjU2NTY1NjU2NTY1NjU2NTY1NjU2NTY1NjU2NTY1NjU2NTY1NjU2NUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkNDQ0NDQ0NDQ0MiDQp9");
@@ -53,22 +43,18 @@ namespace HTTPnet.Core.Tests
         }
 
         [TestMethod]
-        public async void WebSocketFrame_Parse()
+        public void WebSocketFrame_Parse()
         {
-            var payload = new JObject
-            {
-                ["Hello"] = "World"
-            };
-
-            var payloadBuffer = Encoding.UTF8.GetBytes(payload.ToString());
+            var payload = "{\"Hello\":\"World\"}";
+            var payloadBuffer = Encoding.UTF8.GetBytes(payload);
             var sourceWebSocketFrame = new WebSocketFrame { Opcode = WebSocketOpcode.Binary, Payload = payloadBuffer };
             sourceWebSocketFrame.Opcode = WebSocketOpcode.Ping;
 
             var memoryStream = new MemoryStream();
-            await new WebSocketFrameWriter(memoryStream).WriteAsync(sourceWebSocketFrame, CancellationToken.None);
+            new WebSocketFrameWriter(memoryStream).WriteAsync(sourceWebSocketFrame, CancellationToken.None).Wait();
 
             memoryStream.Position = 0;
-            var targetWebSocketFrame = await new WebSocketFrameReader(memoryStream).ReadAsync(CancellationToken.None);
+            var targetWebSocketFrame = new WebSocketFrameReader(memoryStream).ReadAsync(CancellationToken.None).Result;
 
             Assert.AreEqual(sourceWebSocketFrame.Fin, targetWebSocketFrame.Fin);
             Assert.AreEqual(sourceWebSocketFrame.Opcode, targetWebSocketFrame.Opcode);

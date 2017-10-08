@@ -1,0 +1,49 @@
+<html>
+    <head>
+
+            <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+
+    </head>
+<body>
+
+        <script>
+            $(document).ready(function() {
+                $("#x").click(function() {
+                    $.ajax({
+                        method: "POST",
+                        url: "test",
+                        data: "sajdhjashfjhfjksdfhdksjfhdskjfhdskjfhdskjfhsdkjfhsdkjfhsdkjfhsdkjfhsdkjfhdskfjhsdkfjhsdkfjhskdjfhkjshdfkjhsdfuoihefiuhefeiwufhewifuhewifuhwefiuwehfiuwehiweufheiwufhiuhwefiuhwefiuhewfdjashdjsahdjsahjsahdsajhdasjhdajsdhasjdhjsadh"
+                    })
+                });
+
+                var ws;
+                $("#WS_CONNECT").click(function() {
+                    ws = new WebSocket("ws://localhost/ws", []);     
+                    ws.onmessage = function(m){
+                        console.log(m);
+                    };
+                });
+
+                $("#WS_DISCONNECT").click(function() {
+                    ws.close();
+                });
+
+                $("#WS_SEND").click(function() {
+                    ws.send("TEST-MESSAGE");
+                });
+            });
+        </script>
+
+    <b id="x">Test</b>
+
+
+    <h1>WebSockets</h1>
+    <button id="WS_CONNECT">Connect</button>
+    <button id="WS_DISCONNECT">Disconnect</button>
+    <button id="WS_SEND">Send Message</button>
+
+</body>
+</html>

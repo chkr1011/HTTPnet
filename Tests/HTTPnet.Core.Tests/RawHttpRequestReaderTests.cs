@@ -1,9 +1,11 @@
 ﻿using System.IO;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
+using HTTPnet.Core.Communication;
 using HTTPnet.Core.Http;
 using HTTPnet.Core.Http.Raw;
+using HTTPnet.Core.Pipeline;
+using HTTPnet.Core.Pipeline.Handlers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace HTTPnet.Core.Tests
@@ -12,12 +14,12 @@ namespace HTTPnet.Core.Tests
     public class RawHttpRequestReaderTests
     {
         [TestMethod]
-        public async void HttpRequestReader_ParseWithoutContentLength()
+        public void HttpRequestReader_ParseWithoutContentLength()
         {
             var buffer = new MemoryStream(Encoding.UTF8.GetBytes(GetRequestTextWithoutContentLength())) { Position = 0 };
             var parser = new RawHttpRequestReader(buffer, new HttpServerOptions());
 
-            var request = await parser.ReadAsync(CancellationToken.None);
+            var request = parser.ReadAsync(CancellationToken.None).Result;
             Assert.IsTrue(request != null, "Parse failed.");
             Assert.AreEqual(HttpMethod.Delete, request.Method);
             Assert.AreEqual("/Uri%20/lalalo323/_/-/+/%/@/&/./~/:/#/;/,/*", request.Uri);
@@ -33,18 +35,20 @@ namespace HTTPnet.Core.Tests
         }
 
         [TestMethod]
-        public async void HttpRequestReader_ParseWithContentLength()
+        public void HttpRequestReader_ParseWithContentLength()
         {
             var buffer = new MemoryStream(Encoding.UTF8.GetBytes(GetRequestTextWithContentLength())) { Position = 0 };
             var parser = new RawHttpRequestReader(buffer, new HttpServerOptions());
 
-            var request = await parser.ReadAsync(CancellationToken.None);
+            var request = parser.ReadAsync(CancellationToken.None).Result;
 
+            var bodyReader = new RequestBodyHandler();
+            
             Assert.IsTrue(request != null, "Parse failed.");
             Assert.AreEqual("Body123{}%!(:<>=", Encoding.UTF8.GetString(StreamToArray(request.Body)));
         }
 
-        private byte[] StreamToArray(Stream source)
+        private static byte[] StreamToArray(Stream source)
         {
             var buffer = new byte[source.Length];
             source.Read(buffer, 0, buffer.Length);

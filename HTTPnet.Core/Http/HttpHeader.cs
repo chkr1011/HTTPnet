@@ -1,22 +1,22 @@
 ﻿namespace HTTPnet.Core.Http
 {
-    public static class HttpHeaderName
+    public static class HttpHeader
     {
-        public static string AccessControlAllowOrigin = "Access-Control-Allow-Origin";
+        public const string AccessControlAllowOrigin = "Access-Control-Allow-Origin";
 
         public const string AcceptEncoding = "Accept-Encoding";
 
         public const string Connection = "Connection";
 
-        public static string ContentType = "Content-Type";
+        public const string ContentType = "Content-Type";
 
-        public static string ContentEncoding = "Content-Encoding";
+        public const string ContentEncoding = "Content-Encoding";
 
         public const string ContentLength = "Content-Length";
 
-        public static string IfNoneMatch = "If-None-Match";
+        public const string IfNoneMatch = "If-None-Match";
 
-        public static string ETag = "ETag";
+        public const string ETag = "ETag";
 
         public const string Expect = "Expect";
 
@@ -24,7 +24,7 @@
 
         public const string SecWebSocketAccept = "Sec-WebSocket-Accept";
 
-        public static string SecWebSocketProtocol = "Sec-WebSocket-Protocol";
+        public const string SecWebSocketProtocol = "Sec-WebSocket-Protocol";
 
         public const string SecWebSocketKey = "Sec-WebSocket-Key";
     }

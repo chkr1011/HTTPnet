@@ -19,13 +19,13 @@ namespace HTTPnet.Core.Pipeline.Handlers
 
         public Task ProcessRequestAsync(HttpContextPipelineHandlerContext context)
         {
-            var isWebSocketRequest = context.HttpContext.Request.Headers.ValueEquals(HttpHeaderName.Upgrade, "websocket");
+            var isWebSocketRequest = context.HttpContext.Request.Headers.ValueEquals(HttpHeader.Upgrade, "websocket");
             if (!isWebSocketRequest)
             {
                 return Task.FromResult(0);
             }
 
-            var webSocketKey = context.HttpContext.Request.Headers[HttpHeaderName.SecWebSocketKey];
+            var webSocketKey = context.HttpContext.Request.Headers[HttpHeader.SecWebSocketKey];
             var responseKey = webSocketKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
             var responseKeyBuffer = Encoding.UTF8.GetBytes(responseKey);
 
@@ -33,9 +33,9 @@ namespace HTTPnet.Core.Pipeline.Handlers
             var secWebSocketAccept = Convert.ToBase64String(hash);
 
             context.HttpContext.Response.StatusCode = (int)HttpStatusCode.SwitchingProtocols;
-            context.HttpContext.Response.Headers[HttpHeaderName.Connection] = "Upgrade";
-            context.HttpContext.Response.Headers[HttpHeaderName.Upgrade] = "websocket";
-            context.HttpContext.Response.Headers[HttpHeaderName.SecWebSocketAccept] = secWebSocketAccept;
+            context.HttpContext.Response.Headers[HttpHeader.Connection] = "Upgrade";
+            context.HttpContext.Response.Headers[HttpHeader.Upgrade] = "websocket";
+            context.HttpContext.Response.Headers[HttpHeader.SecWebSocketAccept] = secWebSocketAccept;
 
             var webSocketSession = new WebSocketSession(context.HttpContext.ClientSession);
             context.HttpContext.ClientSession.SwitchProtocol(webSocketSession);

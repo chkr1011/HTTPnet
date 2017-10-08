@@ -6,11 +6,7 @@
 
         public int Port { get; set; } = 80;
 
-        public int MaxUriLength { get; set; } = 2000;
-
         public bool NoDelay { get; set; } = true;
-
-        public int ReceiveBufferSize { get; set; } = 4096;
 
         public int Backlog { get; set; } = 10;
 

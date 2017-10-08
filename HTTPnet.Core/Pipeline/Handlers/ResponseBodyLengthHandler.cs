@@ -14,7 +14,7 @@ namespace HTTPnet.Core.Pipeline.Handlers
         public Task ProcessResponseAsync(HttpContextPipelineHandlerContext context)
         {
             var bodyLength = context.HttpContext.Response.Body?.Length ?? 0;
-            context.HttpContext.Response.Headers[HttpHeaderName.ContentLength] = bodyLength.ToString(CultureInfo.InvariantCulture);
+            context.HttpContext.Response.Headers[HttpHeader.ContentLength] = bodyLength.ToString(CultureInfo.InvariantCulture);
 
             return Task.FromResult(0);
         }

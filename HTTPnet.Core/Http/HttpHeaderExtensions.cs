@@ -7,12 +7,12 @@ namespace HTTPnet.Core.Http
     {
         public static bool ConnectionMustBeClosed(this Dictionary<string, string> headers)
         {
-            return headers.ValueEquals(HttpHeaderName.Connection, "Close");
+            return headers.ValueEquals(HttpHeader.Connection, "Close");
         }
 
         public static bool RequiresContinue(this Dictionary<string, string> headers)
         {
-            return headers.TryGetValue(HttpHeaderName.Expect, out var value) && string.Equals(value, "100-Continue", StringComparison.OrdinalIgnoreCase);
+            return headers.TryGetValue(HttpHeader.Expect, out var value) && string.Equals(value, "100-Continue", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool ValueEquals(this Dictionary<string, string> headers, string headerName, string expectedValue)

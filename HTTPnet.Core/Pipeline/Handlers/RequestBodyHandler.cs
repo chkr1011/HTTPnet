@@ -10,7 +10,7 @@ namespace HTTPnet.Core.Pipeline.Handlers
         public async Task ProcessRequestAsync(HttpContextPipelineHandlerContext context)
         {
             var bodyLength = 0;
-            if (context.HttpContext.Request.Headers.TryGetValue(HttpHeaderName.ContentLength, out var v))
+            if (context.HttpContext.Request.Headers.TryGetValue(HttpHeader.ContentLength, out var v))
             {
                 bodyLength = int.Parse(v);
             }
@@ -21,7 +21,7 @@ namespace HTTPnet.Core.Pipeline.Handlers
                 return;
             }
 
-            if (context.HttpContext.Request.Headers.ValueEquals(HttpHeaderName.Expect, "100-Continue"))
+            if (context.HttpContext.Request.Headers.ValueEquals(HttpHeader.Expect, "100-Continue"))
             {
                 var response = new RawHttpResponse
                 {

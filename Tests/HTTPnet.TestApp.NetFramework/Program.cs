@@ -18,7 +18,7 @@ namespace HTTPnet.TestApp.NetFramework
         public static void Main(string[] args)
         {
             HttpNetTrace.TraceMessagePublished += (s, e) => Console.WriteLine("[" + e.Source + "] [" + e.Level + "] [" + e.Message + "] [" + e.Exception + "]");
-            
+
             var pipeline = new HttpContextPipeline(new SimpleExceptionHandler());
             pipeline.Add(new RequestBodyHandler());
             pipeline.Add(new TraceHandler());
@@ -39,7 +39,7 @@ namespace HTTPnet.TestApp.NetFramework
         {
             webSocketSession.MessageReceived += async (s, e) =>
             {
-                Console.WriteLine(((WebSocketTextMessage) e.Message).Text);
+                Console.WriteLine(((WebSocketTextMessage)e.Message).Text);
 
                 await webSocketSession.SendAsync("Reply...");
             };
@@ -57,13 +57,13 @@ namespace HTTPnet.TestApp.NetFramework
         {
             public Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
             {
-                httpContext.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+                httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
                 httpContext.Response.Body = new MemoryStream(Encoding.UTF8.GetBytes(exception.ToString()));
-                httpContext.Response.Headers[HttpHeaderName.ContentLength] = httpContext.Response.Body.Length.ToString(CultureInfo.InvariantCulture);
+                httpContext.Response.Headers[HttpHeader.ContentLength] = httpContext.Response.Body.Length.ToString(CultureInfo.InvariantCulture);
 
                 httpContext.CloseConnection = true;
-                
+
                 return Task.FromResult(0);
             }
         }
@@ -72,20 +72,38 @@ namespace HTTPnet.TestApp.NetFramework
         {
             public Task ProcessRequestAsync(HttpContextPipelineHandlerContext context)
             {
+                if (context.HttpContext.Request.Uri.Equals("/404test"))
+                {
+                    context.HttpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return Task.FromResult(0);
+                }
+
+                if (context.HttpContext.Request.Uri.Equals("/toUpper"))
+                {
+                    var s = new StreamReader(context.HttpContext.Request.Body).ReadToEnd();
+                    context.HttpContext.Response.Body = new MemoryStream(Encoding.UTF8.GetBytes(s.ToUpperInvariant()));
+                    context.HttpContext.Response.StatusCode = (int)HttpStatusCode.OK; // OK is also default
+                    return Task.FromResult(0);
+                }
+
                 var filename = "C:" + context.HttpContext.Request.Uri.Replace("/", "\\");
-
-                context.HttpContext.Response.Body = File.OpenRead(filename);
-
-                //var b = Encoding.UTF8.GetBytes("Hello World");
-                //context.HttpContext.Response.Body.Write(b, 0, b.Length);
+                if (File.Exists(filename))
+                {
+                    // Return a file from the filesystem.
+                    context.HttpContext.Response.Body = File.OpenRead(filename);
+                }
+                else
+                {
+                    // Return a static text.
+                    var b = Encoding.UTF8.GetBytes("Hello World");
+                    context.HttpContext.Response.Body.Write(b, 0, b.Length);
+                }
 
                 return Task.FromResult(0);
             }
 
             public Task ProcessResponseAsync(HttpContextPipelineHandlerContext context)
             {
-
-
                 return Task.FromResult(0);
             }
         }

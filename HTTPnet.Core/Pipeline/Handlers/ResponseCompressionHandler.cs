@@ -26,7 +26,7 @@ namespace HTTPnet.Core.Pipeline.Handlers
                 return;
             }
 
-            context.HttpContext.Response.Headers[HttpHeaderName.ContentEncoding] = "gzip";
+            context.HttpContext.Response.Headers[HttpHeader.ContentEncoding] = "gzip";
 
             var compressedBody = new MemoryStream();
             using (var zipStream = new GZipStream(compressedBody, CompressionLevel.Fastest, true))
@@ -41,7 +41,7 @@ namespace HTTPnet.Core.Pipeline.Handlers
 
         private static bool ClientSupportsGzipCompression(Dictionary<string, string> headers)
         {
-            if (headers.TryGetValue(HttpHeaderName.AcceptEncoding, out var headerValue))
+            if (headers.TryGetValue(HttpHeader.AcceptEncoding, out var headerValue))
             {
                 return headerValue.IndexOf("gzip", StringComparison.OrdinalIgnoreCase) > -1;
             }
