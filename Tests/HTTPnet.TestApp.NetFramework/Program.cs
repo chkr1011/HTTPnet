@@ -78,7 +78,7 @@ namespace HTTPnet.TestApp.NetFramework
                     return Task.FromResult(0);
                 }
 
-                if (context.HttpContext.Request.Uri.Equals("/toUpper"))
+                if (context.HttpContext.Request.Method.Equals(HttpMethod.Post) && context.HttpContext.Request.Uri.Equals("/toUpper"))
                 {
                     var s = new StreamReader(context.HttpContext.Request.Body).ReadToEnd();
                     context.HttpContext.Response.Body = new MemoryStream(Encoding.UTF8.GetBytes(s.ToUpperInvariant()));
@@ -95,8 +95,7 @@ namespace HTTPnet.TestApp.NetFramework
                 else
                 {
                     // Return a static text.
-                    var b = Encoding.UTF8.GetBytes("Hello World");
-                    context.HttpContext.Response.Body.Write(b, 0, b.Length);
+                    context.HttpContext.Response.Body = new MemoryStream(Encoding.UTF8.GetBytes("Hello World"));
                 }
 
                 return Task.FromResult(0);
