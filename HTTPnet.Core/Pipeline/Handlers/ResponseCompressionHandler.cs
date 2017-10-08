@@ -4,9 +4,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using HTTPnet.Core.Http;
-using HTTPnet.Core.Pipeline;
 
-namespace HTTPnet.TestApp.NetFramework.Processors
+namespace HTTPnet.Core.Pipeline.Handlers
 {
     public class ResponseCompressionHandler : IHttpContextPipelineHandler
     {

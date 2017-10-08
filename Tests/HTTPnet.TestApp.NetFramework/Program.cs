@@ -3,7 +3,6 @@ using HTTPnet.Core.Http;
 using HTTPnet.Core.Pipeline;
 using HTTPnet.Core.Pipeline.Handlers;
 using HTTPnet.Core.WebSockets;
-using HTTPnet.TestApp.NetFramework.Processors;
 using System;
 using System.Globalization;
 using System.IO;
@@ -18,24 +17,20 @@ namespace HTTPnet.TestApp.NetFramework
     {
         public static void Main(string[] args)
         {
-            HttpNetTrace.TraceMessagePublished += (s, e) => Console.WriteLine(e);
-
+            HttpNetTrace.TraceMessagePublished += (s, e) => Console.WriteLine("[" + e.Source + "] [" + e.Level + "] [" + e.Message + "] [" + e.Exception + "]");
+            
             var pipeline = new HttpContextPipeline(new SimpleExceptionHandler());
-
             pipeline.Add(new RequestBodyHandler());
             pipeline.Add(new TraceHandler());
             pipeline.Add(new WebSocketRequestHandler(ComputeSha1Hash, SessionCreated));
             pipeline.Add(new ResponseBodyLengthHandler());
             pipeline.Add(new ResponseCompressionHandler());
             pipeline.Add(new SimpleHttpRequestHandler());
-            
-            var options = new HttpServerOptions
-            {
-                HttpRequestHandler = pipeline
-            };
 
             var httpServer = new HttpServerFactory().CreateHttpServer();
-            httpServer.StartAsync(options).GetAwaiter().GetResult();
+            httpServer.RequestHandler = pipeline;
+            httpServer.StartAsync(HttpServerOptions.Default).GetAwaiter().GetResult();
+
 
             Thread.Sleep(Timeout.Infinite);
         }

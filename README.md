@@ -17,6 +17,12 @@ HTTPnet is a .NET library for HTTP and WebSocket based communication. It provide
 * Lightweight (only the low level implementation of HTTP, no overhead)
 * Access to internal trace messages
 
+# Supported HTTP features
+* Compressed responses with Gzip
+* Expect header (100-Continue) for large bodies
+* Keep-Alive connections
+* WebSockets
+
 # Supported frameworks
 * .NET Standard 1.3+
 * .NET Core 1.1+
@@ -28,11 +34,6 @@ HTTPnet is a .NET library for HTTP and WebSocket based communication. It provide
 # Supported HTTP versions
 * 1.1
 * 1.0
-
-# Supported HTTP features
-* Compressed responses with Gzip
-* Expect header (100-Continue) for large bodies
-* Keep-Alive connections
 
 # Nuget
 This library is available as a nuget package: https://www.nuget.org/packages/HTTPnet/

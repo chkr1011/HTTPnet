@@ -9,13 +9,12 @@ namespace HTTPnet.Core.Communication
     public sealed class ClientSession : IDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private readonly HttpServerOptions _options;
         private readonly HttpServer _httpServer;
         private ISessionHandler _sessionHandler;
         
         public ClientSession(IClientSocketWrapper client, HttpServer httpServer, HttpServerOptions options)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            if (options == null) throw new ArgumentNullException(nameof(options));
             _httpServer = httpServer ?? throw new ArgumentNullException(nameof(httpServer));
             Client = client ?? throw new ArgumentNullException(nameof(client));
             

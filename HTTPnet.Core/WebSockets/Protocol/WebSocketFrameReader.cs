@@ -20,8 +20,9 @@ namespace HTTPnet.Core.WebSockets.Protocol
 
             var webSocketFrame = new WebSocketFrame();
 
-            var byte0 = await ReadByteAsync(cancellationToken);
-            var byte1 = await ReadByteAsync(cancellationToken);
+            var buffer = await ReadBytesAsync(2, cancellationToken);
+            var byte0 = buffer[0];
+            var byte1 = buffer[1];
 
             if ((byte0 & 128) == 128)
             {
@@ -38,32 +39,35 @@ namespace HTTPnet.Core.WebSockets.Protocol
             if (payloadLength == 126)
             {
                 // The length is 7 + 16 bits.
-                var byte2 = await ReadByteAsync(cancellationToken);
-                var byte3 = await ReadByteAsync(cancellationToken);
+                buffer = await ReadBytesAsync(2, cancellationToken);
+                var byte2 = buffer[0];
+                var byte3 = buffer[1];
 
                 payloadLength = byte3 | byte2 >> 8 | 126 >> 16;
             }
             else if (payloadLength == 127)
             {
                 // The length is 7 + 64 bits.
-                var byte2 = await ReadByteAsync(cancellationToken);
-                var byte3 = await ReadByteAsync(cancellationToken);
-                var byte4 = await ReadByteAsync(cancellationToken);
-                var byte5 = await ReadByteAsync(cancellationToken);
-                var byte6 = await ReadByteAsync(cancellationToken);
-                var byte7 = await ReadByteAsync(cancellationToken);
-                var byte8 = await ReadByteAsync(cancellationToken);
-                var byte9 = await ReadByteAsync(cancellationToken);
+                buffer = await ReadBytesAsync(8, cancellationToken);
+                var byte2 = buffer[0];
+                var byte3 = buffer[1];
+                var byte4 = buffer[2];
+                var byte5 = buffer[3];
+                var byte6 = buffer[4];
+                var byte7 = buffer[5];
+                var byte8 = buffer[6];
+                var byte9 = buffer[7];
 
                 payloadLength = byte9 | byte8 >> 56 | byte7 >> 48 | byte6 >> 40 | byte5 >> 32 | byte4 >> 24 | byte3 >> 16 | byte2 >> 8 | 127;
             }
             
             if (hasMask)
             {
-                maskingKey[0] = await ReadByteAsync(cancellationToken);
-                maskingKey[1] = await ReadByteAsync(cancellationToken);
-                maskingKey[2] = await ReadByteAsync(cancellationToken);
-                maskingKey[3] = await ReadByteAsync(cancellationToken);
+                buffer = await ReadBytesAsync(4, cancellationToken);
+                maskingKey[0] = buffer[0];
+                maskingKey[1] = buffer[1];
+                maskingKey[2] = buffer[2];
+                maskingKey[3] = buffer[3];
             }
 
             webSocketFrame.MaskingKey = BitConverter.ToUInt32(maskingKey, 0);
@@ -85,16 +89,17 @@ namespace HTTPnet.Core.WebSockets.Protocol
             return webSocketFrame;
         }
 
-        private async Task<byte> ReadByteAsync(CancellationToken cancellationToken)
+        private async Task<byte[]> ReadBytesAsync(int count, CancellationToken cancellationToken)
         {
-            var buffer = new byte[1];
-            var count = await _receiveStream.ReadAsync(buffer, 0, 1, cancellationToken);
-            if (count == 0)
+            var buffer = new byte[count];
+
+            var effectiveCount = await _receiveStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+            if (effectiveCount == 0 || effectiveCount != count)
             {
                 throw new TaskCanceledException();
             }
 
-            return buffer[0];
+            return buffer;
         }
     }
 }

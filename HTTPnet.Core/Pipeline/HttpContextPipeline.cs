@@ -14,15 +14,10 @@ namespace HTTPnet.Core.Pipeline
         {
             _exceptionHandler = exceptionHandler ?? throw new ArgumentNullException(nameof(exceptionHandler));
         }
-
-        public Task HandleUnhandledExceptionAsync(HttpContext httpContext, Exception exception)
+        
+        public async Task HandleHttpRequestAsync(HttpContext httpContext)
         {
-            return _exceptionHandler.HandleExceptionAsync(httpContext, exception);
-        }
-
-        public async Task HandleHttpRequestAsync(HttpContext httpConext)
-        {
-            var pipelineContext = new HttpContextPipelineHandlerContext(httpConext);
+            var pipelineContext = new HttpContextPipelineHandlerContext(httpContext);
             var offset = -1;
 
             try
@@ -51,7 +46,7 @@ namespace HTTPnet.Core.Pipeline
             }
             catch (Exception exception)
             {
-                await HandleUnhandledExceptionAsync(httpConext, exception);
+                await _exceptionHandler.HandleExceptionAsync(httpContext, exception);
             }
         }
 

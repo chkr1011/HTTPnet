@@ -7,7 +7,7 @@ using HTTPnet.Core.Http;
 
 namespace HTTPnet.Core
 {
-    public sealed class HttpServer : IDisposable
+    public sealed class HttpServer : IHttpServer
     {
         private readonly Func<HttpServerOptions, IServerSocketWrapper> _socketWrapperFactory;
 
@@ -19,11 +19,13 @@ namespace HTTPnet.Core
         {
             _socketWrapperFactory = socketWrapperFactory ?? throw new ArgumentNullException(nameof(socketWrapperFactory));
         }
-        
+
+        public IHttpRequestHandler RequestHandler { get; set; }
+
         public async Task StartAsync(HttpServerOptions options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            if (_options.HttpRequestHandler == null) throw new InvalidOperationException("HTTP request handler not set.");
+            if (RequestHandler == null) throw new InvalidOperationException("RequestHandler is not set.");
 
             try
             {
@@ -36,10 +38,10 @@ namespace HTTPnet.Core
                 Task.Factory.StartNew(() => AcceptConnectionsAsync(_cancellationTokenSource.Token).ConfigureAwait(false), _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).ConfigureAwait(false);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                HttpNetTrace.Verbose(e.ToString());
                 await StopAsync();
+                throw;
             }
         }
 
@@ -60,22 +62,12 @@ namespace HTTPnet.Core
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    try
-                    {
-                        var client = await _socketWrapper.AcceptAsync().ConfigureAwait(false);
-                        HttpNetTrace.Verbose("Client '{0}' connected.", client.Identifier);
+                    var client = await _socketWrapper.AcceptAsync().ConfigureAwait(false);
+                    HttpNetTrace.Information(nameof(HttpServer), "Client '{0}' connected.", client.Identifier);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                        Task.Run(async () => await HandleConnectionAsync(client).ConfigureAwait(false), _cancellationTokenSource.Token).ConfigureAwait(false);
+                    Task.Run(async () => await HandleClientConnectionAsync(client).ConfigureAwait(false), _cancellationTokenSource.Token).ConfigureAwait(false);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    }
-                    catch (OperationCanceledException)
-                    {
-                    }
-                    catch (Exception e)
-                    {
-                        HttpNetTrace.Verbose(e.ToString());
-                    }
                 }
             }
             catch (OperationCanceledException)
@@ -83,7 +75,11 @@ namespace HTTPnet.Core
             }
             catch (Exception exception)
             {
-                HttpNetTrace.Verbose(exception.ToString());
+                HttpNetTrace.Error(nameof(HttpServer), exception, "Unhandled exception while accepting clients.");
+            }
+            finally
+            {
+                _cancellationTokenSource?.Cancel(false);
             }
         }
 
@@ -96,9 +92,9 @@ namespace HTTPnet.Core
             _socketWrapper?.Dispose();
         }
 
-        private async Task HandleConnectionAsync(IClientSocketWrapper clientSocket)
+        private async Task HandleClientConnectionAsync(IClientSocketWrapper client)
         {
-            using (var clientSession = new ClientSession(clientSocket, this, _options))
+            using (var clientSession = new ClientSession(client, this, _options))
             {
                 try
                 {
@@ -109,32 +105,31 @@ namespace HTTPnet.Core
                 }
                 catch (Exception exception)
                 {
-                    HttpNetTrace.Verbose("Error while handling HTTP client requests. " + exception);
+                    HttpNetTrace.Error(nameof(HttpServer), exception, "Unhandled exception while handling cient connection.");
                 }
                 finally
                 {
-                    HttpNetTrace.Verbose("Client '{0}' disconnected.", clientSocket.Identifier);
-                    await clientSocket.DisconnectAsync();
+                    HttpNetTrace.Information(nameof(HttpServer), "Client '{0}' disconnected.", client.Identifier);
+                    await client.DisconnectAsync();
                 }
             }
         }
 
         internal async Task HandleHttpRequestAsync(HttpContext httpContext)
         {
-            var handler = _options.HttpRequestHandler;
-            if (handler == null)
-            {
-                return;
-            }
-
             try
             {
-                await handler.HandleHttpRequestAsync(httpContext);
+                var handler = RequestHandler;
+                if (handler == null)
+                {
+                    return;
+                }
+
+                await RequestHandler.HandleHttpRequestAsync(httpContext);
             }
             catch (Exception exception)
             {
-                HttpNetTrace.Verbose(exception.ToString());
-                await handler.HandleUnhandledExceptionAsync(httpContext, exception);
+                HttpNetTrace.Error(nameof(HttpServer), exception, "Unhandled exception while handling received HTTP request.");
             }
         }
     }

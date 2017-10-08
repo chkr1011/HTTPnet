@@ -21,13 +21,13 @@ namespace HTTPnet.Core.Pipeline.Handlers
                 context.HttpContext.Request.Body.Position = 0;
             }
 
-            HttpNetTrace.Verbose(context.HttpContext.Request.Method + " " + context.HttpContext.Request.Uri + " " + body);
+            HttpNetTrace.Verbose(nameof(TraceHandler), context.HttpContext.Request.Method + " " + context.HttpContext.Request.Uri + " " + body);
             return Task.FromResult(0);
         }
 
         public Task ProcessResponseAsync(HttpContextPipelineHandlerContext context)
         {
-            HttpNetTrace.Verbose(context.HttpContext.Response.StatusCode + " " + context.HttpContext.Response.ReasonPhrase);
+            HttpNetTrace.Verbose(nameof(TraceHandler), context.HttpContext.Response.StatusCode + " " + context.HttpContext.Response.ReasonPhrase);
             return Task.FromResult(0);
         }
     }

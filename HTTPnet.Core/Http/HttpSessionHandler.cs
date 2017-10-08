@@ -22,7 +22,6 @@ namespace HTTPnet.Core.Http
         }
 
         public RawHttpRequestReader RequestReader { get; }
-
         public RawHttpResponseWriter ResponseWriter { get; }
 
         public async Task ProcessAsync()
@@ -39,7 +38,7 @@ namespace HTTPnet.Core.Http
             }
             catch (Exception exception)
             {
-                HttpNetTrace.Verbose(exception.ToString());
+                HttpNetTrace.Error(nameof(HttpSessionHandler), exception, "Unhandled exceptio while processing HTTP request.");
                 _clientSession.Close();
                 return;
             }
@@ -48,17 +47,16 @@ namespace HTTPnet.Core.Http
             {
                 Version = httpRequest.Version,
                 Headers = new Dictionary<string, string>(),
-                StatusCode = 404
+                StatusCode = (int)HttpStatusCode.OK
             };
 
             var httpContext = new HttpContext(httpRequest, httpResponse, _clientSession, this);
-
             await _clientSession.HandleHttpRequestAsync(httpContext);
 
             if (httpContext.Response != null)
             {
                 await ResponseWriter.WriteAsync(httpContext.Response, _clientSession.CancellationToken);
-                HttpNetTrace.Verbose("Response '{0}' sent to '{1}'.", httpContext.Response.StatusCode, _clientSession.Client.Identifier);
+                HttpNetTrace.Verbose(nameof(HttpSessionHandler), "Response '{0}' sent to '{1}'.", httpContext.Response.StatusCode, _clientSession.Client.Identifier);
             }
             
             if (httpContext.CloseConnection)
