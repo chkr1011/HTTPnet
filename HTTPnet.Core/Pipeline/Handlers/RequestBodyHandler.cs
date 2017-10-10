@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using HTTPnet.Core.Http;
 using HTTPnet.Core.Http.Raw;
+using System.Net;
 
 namespace HTTPnet.Core.Pipeline.Handlers
 {

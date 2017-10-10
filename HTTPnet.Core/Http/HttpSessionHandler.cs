@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using HTTPnet.Core.Communication;
 using HTTPnet.Core.Diagnostics;
 using HTTPnet.Core.Http.Raw;
+using System.Net;
 
 namespace HTTPnet.Core.Http
 {
