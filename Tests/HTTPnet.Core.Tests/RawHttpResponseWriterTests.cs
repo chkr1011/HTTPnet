@@ -6,6 +6,7 @@ using System.Threading;
 using HTTPnet.Core.Http;
 using HTTPnet.Core.Http.Raw;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net;
 
 namespace HTTPnet.Core.Tests
 {

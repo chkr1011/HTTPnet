@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HTTPnet.Core.Http;
 using HTTPnet.Core.WebSockets;
+using System.Net;
 
 namespace HTTPnet.Core.Pipeline.Handlers
 {
