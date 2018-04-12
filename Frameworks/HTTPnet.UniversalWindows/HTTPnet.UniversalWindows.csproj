@@ -107,8 +107,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="HttpServerFactory.cs" />
-    <Compile Include="Implementations\ClientSocketWrapper.cs" />
-    <Compile Include="Implementations\ServerSocketWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\HTTPnet.UniversalWindows.rd.xml" />
   </ItemGroup>
@@ -117,11 +115,13 @@
       <Version>5.4.0</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\HTTPnet.Core\HTTPnet.Core.csproj">
+    <Folder Include="Implementations\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\HTTPnet.Core\HTTPnet.csproj">
       <Project>{26939955-72A0-41F3-A68C-F04DEF24E326}</Project>
-      <Name>HTTPnet.Core</Name>
+      <Name>HTTPnet</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

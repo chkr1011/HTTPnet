@@ -48,9 +48,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\HTTPnet.Core\HTTPnet.Core.csproj">
+    <ProjectReference Include="..\..\HTTPnet.Core\HTTPnet.csproj">
       <Project>{26939955-72a0-41f3-a68c-f04def24e326}</Project>
-      <Name>HTTPnet.Core</Name>
+      <Name>HTTPnet</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

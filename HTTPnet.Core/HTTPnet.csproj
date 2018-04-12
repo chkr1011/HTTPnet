@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>HTTPnet</AssemblyName>
+    <RootNamespace>HTTPnet</RootNamespace>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <DebugType>Full</DebugType>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <FileVersion>0.0.0.0</FileVersion>
+    <Version>0.0.0.0</Version>
+    <Company />
+    <Product />
+    <Description />
+    <Authors />
+    <PackageId />
+    <SignAssembly>false</SignAssembly>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+</Project>

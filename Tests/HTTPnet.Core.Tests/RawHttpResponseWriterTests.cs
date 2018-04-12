@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,7 @@ namespace HTTPnet.Core.Tests
             {
                 StatusCode = (int) HttpStatusCode.BadRequest,
                 Body = new MemoryStream(Encoding.UTF8.GetBytes("{\"text\":1234}")),
-                Headers =
+                Headers = new Dictionary<string, string>
                 {
                     ["A"] = 1.ToString(),
                     ["B"] = "x"
