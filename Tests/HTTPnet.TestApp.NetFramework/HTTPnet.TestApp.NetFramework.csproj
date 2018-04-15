@@ -47,10 +47,14 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\HTTPnet.Core\HTTPnet.csproj">
-      <Project>{26939955-72A0-41F3-A68C-F04DEF24E326}</Project>
+      <Project>{26939955-72a0-41f3-a68c-f04def24e326}</Project>
       <Name>HTTPnet</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="wwwroot\HttpTest.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HTTPnet.Core.Http;
+using HTTPnet.Http;
 
-namespace HTTPnet.Core
+namespace HTTPnet
 {
     public interface IHttpServer : IDisposable
     {

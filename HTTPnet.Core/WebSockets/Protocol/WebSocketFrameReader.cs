@@ -3,9 +3,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HTTPnet.Core.WebSockets.Protocol
+namespace HTTPnet.WebSockets.Protocol
 {
-    public class WebSocketFrameReader
+    public sealed class WebSocketFrameReader
     {
         private readonly Stream _receiveStream;
 
@@ -20,7 +20,7 @@ namespace HTTPnet.Core.WebSockets.Protocol
 
             var webSocketFrame = new WebSocketFrame();
 
-            var buffer = await ReadBytesAsync(2, cancellationToken);
+            var buffer = await ReadBytesAsync(2, cancellationToken).ConfigureAwait(false);
             var byte0 = buffer[0];
             var byte1 = buffer[1];
 
@@ -39,7 +39,7 @@ namespace HTTPnet.Core.WebSockets.Protocol
             if (payloadLength == 126)
             {
                 // The length is 7 + 16 bits.
-                buffer = await ReadBytesAsync(2, cancellationToken);
+                buffer = await ReadBytesAsync(2, cancellationToken).ConfigureAwait(false);
                 var byte2 = buffer[0];
                 var byte3 = buffer[1];
 
@@ -48,7 +48,7 @@ namespace HTTPnet.Core.WebSockets.Protocol
             else if (payloadLength == 127)
             {
                 // The length is 7 + 64 bits.
-                buffer = await ReadBytesAsync(8, cancellationToken);
+                buffer = await ReadBytesAsync(8, cancellationToken).ConfigureAwait(false);
                 var byte2 = buffer[0];
                 var byte3 = buffer[1];
                 var byte4 = buffer[2];
@@ -63,7 +63,7 @@ namespace HTTPnet.Core.WebSockets.Protocol
             
             if (hasMask)
             {
-                buffer = await ReadBytesAsync(4, cancellationToken);
+                buffer = await ReadBytesAsync(4, cancellationToken).ConfigureAwait(false);
                 maskingKey[0] = buffer[0];
                 maskingKey[1] = buffer[1];
                 maskingKey[2] = buffer[2];

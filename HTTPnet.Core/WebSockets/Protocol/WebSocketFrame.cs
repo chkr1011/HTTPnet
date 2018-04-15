@@ -1,6 +1,6 @@
-﻿namespace HTTPnet.Core.WebSockets.Protocol
+﻿namespace HTTPnet.WebSockets.Protocol
 {
-    public class WebSocketFrame
+    public sealed class WebSocketFrame
     {
         public bool Fin { get; set; } = true;
         public WebSocketOpcode Opcode { get; set; } = WebSocketOpcode.Binary;

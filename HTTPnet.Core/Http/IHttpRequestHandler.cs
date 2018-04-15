@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace HTTPnet.Core.Http
+namespace HTTPnet.Http
 {
     public interface IHttpRequestHandler
     {

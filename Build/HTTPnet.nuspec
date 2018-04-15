@@ -10,7 +10,8 @@
     <iconUrl>https://raw.githubusercontent.com/chkr1011/HTTPnet/master/Images/Logo_128x128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>HTTPnet is a .NET library for HTTP and WebSocket based communication. It provides a HTTP/WebSocket server and a powerful processing pipeline for HTTP request and their responses.</description>
-    <releaseNotes>* Initial version
+    <releaseNotes>* Merged projects to a single library.
+* 
     </releaseNotes>
     <copyright>Copyright Christian Kratky 2017-2018</copyright>
     <tags>HTTP Server NETStandard IoT InternetOfThings REST MVC Internet Ajax Web HTML JavaScript WebSocket WS</tags> 
@@ -30,14 +31,16 @@
 
   <files>
     <!-- .NET Standard 1.3 -->
-    <file src="..\Frameworks\HTTPnet.Netstandard\bin\Release\netstandard1.3\HTTPnet.*" target="lib\netstandard1.3\"/>
+    <file src="..\HTTPnet\bin\Release\netstandard1.3\HTTPnet.*" target="lib\netstandard1.3\"/>
+
+    <!-- .NET Standard 2.0 -->
+    <file src="..\HTTPnet\bin\Release\netstandard2.0\HTTPnet.*" target="lib\netstandard2.0\"/>
 
     <!-- Universal Windows -->
-    <file src="..\Frameworks\HTTPnet.UniversalWindows\bin\Release\HTTPnet.*" target="lib\uap10.0\"/>
+    <file src="..\HTTPnet\bin\Release\uap10.0\HTTPnet.*" target="lib\uap10.0\"/>
 
     <!-- .NET Framework -->
-    <file src="..\Frameworks\HTTPnet.NetFramework\bin\Release\HTTPnet.*" target="lib\net45\"/>
-    <file src="..\Frameworks\HTTPnet.Netstandard\bin\Release\net461\MQTTnet.*" target="lib\net461\"/>
-
+    <file src="..\HTTPnet\bin\Release\net452\HTTPnet.*" target="lib\net452\"/>
+    <file src="..\HTTPnet\bin\Release\net462\HTTPnet.*" target="lib\net462\"/>
   </files>
 </package>

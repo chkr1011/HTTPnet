@@ -1,16 +1,17 @@
-﻿using HTTPnet.Core.Diagnostics;
-using HTTPnet.Core.Http;
-using HTTPnet.Core.Pipeline;
-using HTTPnet.Core.Pipeline.Handlers;
-using HTTPnet.Core.WebSockets;
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HTTPnet.Diagnostics;
+using HTTPnet.Http;
+using HTTPnet.Pipeline;
+using HTTPnet.Pipeline.Modules;
+using HTTPnet.Pipeline.Modules.StaticFiles;
+using HTTPnet.Pipeline.Modules.WebSockets;
+using HTTPnet.WebSockets;
 
 namespace HTTPnet.TestApp.NetFramework
 {
@@ -18,25 +19,44 @@ namespace HTTPnet.TestApp.NetFramework
     {
         public static void Main(string[] args)
         {
-            HttpNetTrace.TraceMessagePublished += (s, e) => Console.WriteLine("[" + e.Source + "] [" + e.Level + "] [" + e.Message + "] [" + e.Exception + "]");
+            Console.WriteLine("HTTPnet test app");
+            Console.WriteLine("1 - Start server");
+            Console.WriteLine("2 - Send Expect 100-Continue request");
+            if (Console.ReadKey(true).KeyChar == '1')
+            {
+                HttpNetTrace.TraceMessagePublished += (s, e) => Console.WriteLine("[" + e.Source + "] [" + e.Level + "] [" + e.Message + "] [" + e.Exception + "]");
 
-            var pipeline = new HttpContextPipeline(new SimpleExceptionHandler());
-            pipeline.Add(new RequestBodyHandler());
-            pipeline.Add(new TraceHandler());
-            pipeline.Add(new WebSocketRequestHandler(ComputeSha1Hash, SessionCreated));
-            pipeline.Add(new ResponseBodyLengthHandler());
-            pipeline.Add(new ResponseCompressionHandler());
-            pipeline.Add(new SimpleHttpRequestHandler());
+                var pipeline = new HttpRequestPipeline(new SimpleExceptionHandler());
+                pipeline.Add(new TraceModule());
+                pipeline.Add(new WebSocketModule(SessionCreated));
+                pipeline.Add(new StaticFilesModule("app", new PhysicalStaticFilesStorage(".\\wwwroot"), new DefaultMimeTypeDetector()));
+                pipeline.Add(new SimpleHttpRequestHandler());
 
-            var httpServer = new HttpServerFactory().CreateHttpServer();
-            httpServer.RequestHandler = pipeline;
-            httpServer.StartAsync(HttpServerOptions.Default).GetAwaiter().GetResult();
+                var httpServer = new HttpServerFactory().CreateHttpServer();
+                httpServer.RequestHandler = pipeline;
+                httpServer.StartAsync(HttpServerOptions.Default).GetAwaiter().GetResult();
 
 
-            Thread.Sleep(Timeout.Infinite);
+                Thread.Sleep(Timeout.Infinite);
+            }
+            else
+            {
+                var webRequest = WebRequest.CreateHttp("http://localhost/hello");
+                webRequest.Method = "POST";
+                var stream = webRequest.GetRequestStream();
+
+                var buffer = Encoding.ASCII.GetBytes("Hans");
+                stream.Write(buffer, 0, buffer.Length);
+                var response = webRequest.GetResponse();
+
+                Console.WriteLine(new StreamReader(response.GetResponseStream()).ReadToEnd());
+            }
+
+
+
         }
 
-        private static void SessionCreated(WebSocketSession webSocketSession)
+        private static void SessionCreated(WebSocketClientSessionHandler webSocketSession)
         {
             webSocketSession.MessageReceived += async (s, e) =>
             {
@@ -46,15 +66,7 @@ namespace HTTPnet.TestApp.NetFramework
             };
         }
 
-        private static byte[] ComputeSha1Hash(byte[] source)
-        {
-            using (var sha1 = SHA1.Create())
-            {
-                return sha1.ComputeHash(source);
-            }
-        }
-
-        public class SimpleExceptionHandler : IHttpContextPipelineExceptionHandler
+        public class SimpleExceptionHandler : IHttpRequestPipelineExceptionHandler
         {
             public Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
             {
@@ -69,40 +81,47 @@ namespace HTTPnet.TestApp.NetFramework
             }
         }
 
-        public class SimpleHttpRequestHandler : IHttpContextPipelineHandler
+        public class SimpleHttpRequestHandler : IHttpRequestPipelineModule
         {
-            public Task ProcessRequestAsync(HttpContextPipelineHandlerContext context)
+            public Task ProcessRequestAsync(HttpRequestPipelineModuleContext context)
             {
-                if (context.HttpContext.Request.Uri.Equals("/404test"))
+                try
                 {
-                    context.HttpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return Task.FromResult(0);
-                }
+                    if (context.HttpContext.Request.Uri.Equals("/hello"))
+                    {
+                        var c = new StreamReader(context.HttpContext.Request.Body).ReadToEnd();
 
-                if (context.HttpContext.Request.Method.Equals(HttpMethod.Post) && context.HttpContext.Request.Uri.Equals("/toUpper"))
-                {
-                    var s = new StreamReader(context.HttpContext.Request.Body).ReadToEnd();
-                    context.HttpContext.Response.Body = new MemoryStream(Encoding.UTF8.GetBytes(s.ToUpperInvariant()));
-                    context.HttpContext.Response.StatusCode = (int)HttpStatusCode.OK; // OK is also default
-                    return Task.FromResult(0);
-                }
+                        context.HttpContext.Response.StatusCode = (int)HttpStatusCode.OK;
+                        context.HttpContext.Response.Body = new MemoryStream(Encoding.ASCII.GetBytes("Hello " + c));
+                        context.HttpContext.Response.Headers["Access-Control-Allow-Origin"] = "*";
+                        return Task.FromResult(0);
+                    }
 
-                var filename = "C:" + context.HttpContext.Request.Uri.Replace("/", "\\");
-                if (File.Exists(filename))
-                {
-                    // Return a file from the filesystem.
-                    context.HttpContext.Response.Body = File.OpenRead(filename);
+                    if (context.HttpContext.Request.Uri.Equals("/404test"))
+                    {
+                        context.HttpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        return Task.FromResult(0);
+                    }
+
+                    if (context.HttpContext.Request.Method.Equals(HttpMethod.Post) &&
+                        context.HttpContext.Request.Uri.Equals("/toUpper"))
+                    {
+                        var s = new StreamReader(context.HttpContext.Request.Body).ReadToEnd();
+                        context.HttpContext.Response.Body =
+                            new MemoryStream(Encoding.UTF8.GetBytes(s.ToUpperInvariant()));
+                        context.HttpContext.Response.StatusCode = (int) HttpStatusCode.OK; // OK is also default
+                        return Task.FromResult(0);
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    // Return a static text.
-                    context.HttpContext.Response.Body = new MemoryStream(Encoding.UTF8.GetBytes("Hello World"));
+                    Console.WriteLine(e);
                 }
 
                 return Task.FromResult(0);
             }
 
-            public Task ProcessResponseAsync(HttpContextPipelineHandlerContext context)
+            public Task ProcessResponseAsync(HttpRequestPipelineModuleContext context)
             {
                 return Task.FromResult(0);
             }

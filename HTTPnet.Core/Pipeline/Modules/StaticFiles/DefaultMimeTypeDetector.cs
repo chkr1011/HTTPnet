@@ -1,8 +1,8 @@
 ﻿using System.IO;
 
-namespace HTTPnet.Core.Pipeline.Handlers
+namespace HTTPnet.Pipeline.Modules.StaticFiles
 {
-    public static class MimeTypeProvider
+    public class DefaultMimeTypeDetector : IMimeTypeDetector
     {
         public const string Csv = "text/csv; charset=utf-8";
         public const string Html = "text/html; charset=utf-8";
@@ -15,7 +15,7 @@ namespace HTTPnet.Core.Pipeline.Handlers
         public const string PlainText = "text/plain; charset=utf-8";
         public const string OctetStream = "application/octet-stream";
 
-        public static string GetMimeTypeFromFilename(string filename)
+        public string GetMimeTypeFromFilename(string filename)
         {
             string extension = Path.GetExtension(filename).ToLower();
             switch (extension)
@@ -69,7 +69,7 @@ namespace HTTPnet.Core.Pipeline.Handlers
 
                 default:
                     {
-                        return PlainText;
+                        return null;
                     }
             }
         }

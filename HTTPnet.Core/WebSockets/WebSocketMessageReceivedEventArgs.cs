@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace HTTPnet.Core.WebSockets
+namespace HTTPnet.WebSockets
 {
     public class WebSocketMessageReceivedEventArgs : EventArgs
     {
-        public WebSocketMessageReceivedEventArgs(WebSocketMessage message, WebSocketSession webSocketSession)
+        public WebSocketMessageReceivedEventArgs(WebSocketMessage message, WebSocketClientSessionHandler webSocketClientSession)
         {
             Message = message ?? throw new ArgumentNullException(nameof(message));
-            WebSocketSession = webSocketSession ?? throw new ArgumentNullException(nameof(webSocketSession));
+            WebSocketClientSession = webSocketClientSession ?? throw new ArgumentNullException(nameof(webSocketClientSession));
         }
 
-        public WebSocketSession WebSocketSession { get; }
+        public WebSocketClientSessionHandler WebSocketClientSession { get; }
 
         public WebSocketMessage Message { get; }
     }

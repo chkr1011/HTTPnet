@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading;
-using HTTPnet.Core.WebSockets.Protocol;
+using HTTPnet.WebSockets.Protocol;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace HTTPnet.Core.Tests

@@ -1,10 +1,10 @@
-﻿#if NET452 || NET461 || NETSTANDARD1_3 || NETSTANDARD2_0
+﻿#if NET452 || NET462 || NET471 || NETSTANDARD1_3 || NETSTANDARD2_0
 using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using HTTPnet.Core.Communication;
-using HTTPnet.Core.Http;
+using HTTPnet.Communication;
+using HTTPnet.Http;
 
 namespace HTTPnet.Implementations
 {
@@ -22,15 +22,11 @@ namespace HTTPnet.Implementations
         {
             if (_listener != null)
             {
-                throw new InvalidOperationException("Already started.");
+                return Task.FromResult(0);
             }
 
-            _listener = new Socket(SocketType.Stream, ProtocolType.Tcp)
-            {
-                NoDelay = _options.NoDelay
-            };
-
-            _listener.Bind(new IPEndPoint(IPAddress.Any, _options.Port));
+            _listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            _listener.Bind(new IPEndPoint(_options.BoundIPAddress, _options.Port));
             _listener.Listen(_options.Backlog);
             
             return Task.FromResult(0);
@@ -38,13 +34,8 @@ namespace HTTPnet.Implementations
 
         public Task StopAsync()
         {
-            if (_listener == null)
-            {
-                return Task.FromResult(0);
-            }
-            
-            _listener.Shutdown(SocketShutdown.Both);
-            _listener.Dispose();
+            _listener?.Shutdown(SocketShutdown.Both);
+            _listener?.Dispose();
             _listener = null;
 
             return Task.FromResult(0);
@@ -59,9 +50,12 @@ namespace HTTPnet.Implementations
 
         public async Task<IClientSocketWrapper> AcceptAsync()
         {
-            var clientSocket = await _listener.AcceptAsync();
-            clientSocket.NoDelay = _options.NoDelay;
-
+#if NET462 || NET452
+            var clientSocket = await Task.Factory.FromAsync(_listener.BeginAccept, _listener.EndAccept, null).ConfigureAwait(false);
+#else
+            var clientSocket = await _listener.AcceptAsync().ConfigureAwait(false);
+#endif
+            
             return new ClientSocketWrapper(clientSocket);
         }
     }

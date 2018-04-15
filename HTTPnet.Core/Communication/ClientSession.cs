@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using HTTPnet.Core.Http;
+using HTTPnet.Http;
 
-namespace HTTPnet.Core.Communication
+namespace HTTPnet.Communication
 {
     public sealed class ClientSession : IDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly HttpServer _httpServer;
-        private ISessionHandler _sessionHandler;
+
+        private IClientSessionHandler _sessionHandler;
         
         public ClientSession(IClientSocketWrapper client, HttpServer httpServer, HttpServerOptions options)
         {
@@ -18,19 +18,16 @@ namespace HTTPnet.Core.Communication
             _httpServer = httpServer ?? throw new ArgumentNullException(nameof(httpServer));
             Client = client ?? throw new ArgumentNullException(nameof(client));
             
-            _sessionHandler = new HttpSessionHandler(this, options);
+            _sessionHandler = new HttpClientSessionHandler(this, options);
         }
 
-        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
         public IClientSocketWrapper Client { get; }
         
         public async Task RunAsync()
         {
             while (!_cancellationTokenSource.IsCancellationRequested)
             {
-                Debug.Assert(_sessionHandler != null);
-
-                await _sessionHandler.ProcessAsync();
+                await _sessionHandler.ProcessAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
             }
         }
 
@@ -41,7 +38,7 @@ namespace HTTPnet.Core.Communication
             return _httpServer.HandleHttpRequestAsync(httpContext);
         }
 
-        public void SwitchProtocol(ISessionHandler sessionHandler)
+        public void SwitchProtocol(IClientSessionHandler sessionHandler)
         {
             _sessionHandler = sessionHandler ?? throw new ArgumentNullException(nameof(sessionHandler));
         }
@@ -53,7 +50,9 @@ namespace HTTPnet.Core.Communication
 
         public void Dispose()
         {
-            Close();
+            _cancellationTokenSource?.Cancel(false);
+            _cancellationTokenSource?.Dispose();
+
             Client?.Dispose();
         }
     }

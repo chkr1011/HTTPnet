@@ -1,5 +1,4 @@
-﻿using HTTPnet.Core;
-using HTTPnet.Implementations;
+﻿using HTTPnet.Implementations;
 
 namespace HTTPnet
 {

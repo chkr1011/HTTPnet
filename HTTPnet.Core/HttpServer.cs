@@ -1,11 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HTTPnet.Core.Communication;
-using HTTPnet.Core.Diagnostics;
-using HTTPnet.Core.Http;
+using HTTPnet.Communication;
+using HTTPnet.Diagnostics;
+using HTTPnet.Http;
 
-namespace HTTPnet.Core
+namespace HTTPnet
 {
     public sealed class HttpServer : IHttpServer
     {
@@ -25,22 +25,21 @@ namespace HTTPnet.Core
         public async Task StartAsync(HttpServerOptions options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            if (RequestHandler == null) throw new InvalidOperationException("RequestHandler is not set.");
-
+            
             try
             {
                 _cancellationTokenSource = new CancellationTokenSource();
                 _socketWrapper = _socketWrapperFactory(options);
 
-                await _socketWrapper.StartAsync();
+                await _socketWrapper.StartAsync().ConfigureAwait(false);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                Task.Factory.StartNew(() => AcceptConnectionsAsync(_cancellationTokenSource.Token).ConfigureAwait(false), _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).ConfigureAwait(false);
+                Task.Run(() => AcceptConnectionsAsync(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
             catch (Exception)
             {
-                await StopAsync();
+                await StopAsync().ConfigureAwait(false);
                 throw;
             }
         }
@@ -49,7 +48,7 @@ namespace HTTPnet.Core
         {
             if (_socketWrapper != null)
             {
-                await _socketWrapper.StopAsync();
+                await _socketWrapper.StopAsync().ConfigureAwait(false);
             }
 
             _socketWrapper?.Dispose();
@@ -66,7 +65,7 @@ namespace HTTPnet.Core
                     HttpNetTrace.Information(nameof(HttpServer), "Client '{0}' connected.", client.Identifier);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    Task.Run(async () => await HandleClientConnectionAsync(client).ConfigureAwait(false), _cancellationTokenSource.Token).ConfigureAwait(false);
+                    Task.Run(() => HandleClientAsync(client), _cancellationTokenSource.Token);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 }
             }
@@ -92,7 +91,7 @@ namespace HTTPnet.Core
             _socketWrapper?.Dispose();
         }
 
-        private async Task HandleClientConnectionAsync(IClientSocketWrapper client)
+        private async Task HandleClientAsync(IClientSocketWrapper client)
         {
             using (var clientSession = new ClientSession(client, this, _options))
             {
@@ -125,7 +124,7 @@ namespace HTTPnet.Core
                     return;
                 }
 
-                await RequestHandler.HandleHttpRequestAsync(httpContext);
+                await RequestHandler.HandleHttpRequestAsync(httpContext).ConfigureAwait(false);
             }
             catch (Exception exception)
             {

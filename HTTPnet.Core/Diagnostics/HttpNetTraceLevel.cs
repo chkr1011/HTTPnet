@@ -1,4 +1,4 @@
-﻿namespace HTTPnet.Core.Diagnostics
+﻿namespace HTTPnet.Diagnostics
 {
     public enum HttpNetTraceLevel
     {

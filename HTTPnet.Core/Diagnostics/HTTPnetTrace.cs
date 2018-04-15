@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HTTPnet.Core.Diagnostics
+namespace HTTPnet.Diagnostics
 {
     public static class HttpNetTrace
     {

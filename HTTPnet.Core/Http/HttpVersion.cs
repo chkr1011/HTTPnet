@@ -1,9 +1,11 @@
-﻿namespace HTTPnet.Core.Http
-{
-    public class HttpVersion
-    {
-        public const string Version1_0 = "HTTP/1.0";
+﻿using System;
 
-        public const string Version1_1 = "HTTP/1.1";
+namespace HTTPnet.Http
+{
+    public static class HttpVersion
+    {
+        public static readonly Version Version1 = new Version(1, 0);
+
+        public static readonly Version Version1_1 = new Version(1, 1);
     }
 }

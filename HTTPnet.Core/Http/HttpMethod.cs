@@ -1,4 +1,4 @@
-﻿namespace HTTPnet.Core.Http
+﻿namespace HTTPnet.Http
 {
     public static class HttpMethod
     {

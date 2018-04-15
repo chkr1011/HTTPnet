@@ -1,4 +1,4 @@
-﻿namespace HTTPnet.Core.WebSockets
+﻿namespace HTTPnet.WebSockets
 {
     public abstract class WebSocketMessage
     {

@@ -1,82 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using HTTPnet.Core.Exceptions;
+using HTTPnet.Exceptions;
 
-namespace HTTPnet.Core.Http.Raw
+namespace HTTPnet.Http.Raw
 {
-    public sealed class RawHttpRequestReader
+    public sealed class RawHttpRequestReader : IDisposable
     {
-        private readonly Stream _receiveStream;
-        private readonly Queue<byte> _buffer = new Queue<byte>();
-        private readonly byte[] _chunkBuffer;
+        private readonly Stream _stream;
+        private readonly RawHttpStreamReader _reader;
 
-        public RawHttpRequestReader(Stream receiveStream, HttpServerOptions options)
+        public RawHttpRequestReader(Stream stream)
         {
-            _receiveStream = receiveStream ?? throw new ArgumentNullException(nameof(receiveStream));
-            if (options == null) throw new ArgumentNullException(nameof(options));
+            _stream = stream ?? throw new ArgumentNullException(nameof(stream));
 
-            _chunkBuffer = new byte[options.ReceiveChunkSize];
+            _reader = new RawHttpStreamReader(stream);
         }
 
-        public int BufferLength => _buffer.Count;
+        public Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            return _stream.ReadAsync(buffer, offset, count, cancellationToken);
+        }
 
         public async Task<RawHttpRequest> ReadAsync(CancellationToken cancellationToken)
         {
-            await FetchChunk(cancellationToken).ConfigureAwait(false);
+            var requestLine = await _reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
 
-            var statusLine = ReadLine();
-            var statusLineItems = statusLine.Split(' ');
+            var requestLineParts = requestLine.Split(' ');
 
-            if (statusLineItems.Length != 3)
+            if (requestLineParts.Length != 3)
             {
                 throw new HttpRequestInvalidException();
             }
 
             var request = new RawHttpRequest
             {
-                Method = statusLineItems[0].ToUpperInvariant(),
-                Uri = statusLineItems[1],
-                Version = statusLineItems[2].ToUpperInvariant(),
-                Headers = ParseHeaders()
+                Method = requestLineParts[0].ToUpperInvariant(),
+                Uri = new Uri("http://" + "localhost" + requestLineParts[1]),
+                Version = ParseVersion(requestLineParts[2].ToUpperInvariant()),
+                Headers = await ReadHeadersAsync(cancellationToken).ConfigureAwait(false),
             };
+
+            if (request.Headers.HasExpectsContinue())
+            {
+                return request;
+            }
+
+            var contentLength = request.Headers.GetContentLength();
+            if (contentLength == 0)
+            {
+                request.Body = new MemoryStream(0);
+                return request;
+            }
+            
+            request.Body = new MemoryStream(await _reader.ReadAsync(contentLength, cancellationToken).ConfigureAwait(false));
 
             return request;
         }
 
-        public async Task FetchChunk(CancellationToken cancellationToken)
+        private async Task<Dictionary<string, string>> ReadHeadersAsync(CancellationToken cancellationToken)
         {
-            var size = await _receiveStream.ReadAsync(_chunkBuffer, 0, _chunkBuffer.Length, cancellationToken);
-            if (size == 0)
-            {
-                throw new TaskCanceledException();
-            }
+            var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            for (var i = 0; i < size; i++)
-            {
-                _buffer.Enqueue(_chunkBuffer[i]);
-            }
-        }
-
-        public byte DequeueFromBuffer()
-        {
-            return _buffer.Dequeue();
-        }
-
-        private Dictionary<string, string> ParseHeaders()
-        {
-            var headers = new Dictionary<string, string>();
-
-            var line = ReadLine();
+            var line = await _reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
             while (!string.IsNullOrEmpty(line))
             {
                 var header = ParseHeader(line);
                 headers.Add(header.Key, header.Value);
 
-                line = ReadLine();
+                line = await _reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return headers;
@@ -95,30 +89,25 @@ namespace HTTPnet.Core.Http.Raw
 
             return new KeyValuePair<string, string>(name, value);
         }
-        
-        private string ReadLine()
+
+        private static Version ParseVersion(string source)
         {
-            var buffer = new StringBuilder();
-
-            while (_buffer.Count > 0)
+            if (string.Equals(source, "HTTP/1.0"))
             {
-                var @char = (char)_buffer.Dequeue();
-
-                if (@char == '\r')
-                {
-                    @char = (char)_buffer.Dequeue();
-                    if (@char != '\n')
-                    {
-                        throw new HttpRequestInvalidException();
-                    }
-
-                    return buffer.ToString();
-                }
-
-                buffer.Append(@char);
+                return HttpVersion.Version1;
             }
 
-            throw new HttpRequestInvalidException();
+            if (string.Equals(source, "HTTP/1.1"))
+            {
+                return HttpVersion.Version1_1;
+            }
+
+            throw new NotSupportedException($"HTTP version '{source}' is not supported.");
+        }
+
+        public void Dispose()
+        {
+            _reader?.Dispose();
         }
     }
 }

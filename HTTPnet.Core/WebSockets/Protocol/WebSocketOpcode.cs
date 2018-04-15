@@ -1,4 +1,4 @@
-﻿namespace HTTPnet.Core.WebSockets.Protocol
+﻿namespace HTTPnet.WebSockets.Protocol
 {
     public enum WebSocketOpcode
     {

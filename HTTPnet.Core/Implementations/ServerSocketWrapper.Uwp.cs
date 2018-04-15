@@ -3,12 +3,12 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using HTTPnet.Core.Communication;
-using HTTPnet.Core.Http;
+using HTTPnet.Communication;
+using HTTPnet.Http;
 
 namespace HTTPnet.Implementations
 {
-    public class ServerSocketWrapper : IServerSocketWrapper
+    public sealed class ServerSocketWrapper : IServerSocketWrapper
     {
         private readonly HttpServerOptions _options;
         private Socket _listener;
@@ -25,11 +25,7 @@ namespace HTTPnet.Implementations
                 throw new InvalidOperationException("Already started.");
             }
 
-            _listener = new Socket(SocketType.Stream, ProtocolType.Tcp)
-            {
-                NoDelay = _options.NoDelay
-            };
-
+            _listener = new Socket(SocketType.Stream, ProtocolType.Tcp);
             _listener.Bind(new IPEndPoint(IPAddress.Any, _options.Port));
             _listener.Listen(_options.Backlog);
             
@@ -59,14 +55,7 @@ namespace HTTPnet.Implementations
 
         public async Task<IClientSocketWrapper> AcceptAsync()
         {
-#if (WINDOWS_UWP)         
-            var clientSocket = await _listener.AcceptAsync();
-#else
-            var clientSocket = await Task.Factory.FromAsync(_listener.BeginAccept, _listener.EndAccept, null).ConfigureAwait(false);
-#endif
-
-            clientSocket.NoDelay = _options.NoDelay;
-
+            var clientSocket = await _listener.AcceptAsync().ConfigureAwait(false);
             return new ClientSocketWrapper(clientSocket);
         }
     }

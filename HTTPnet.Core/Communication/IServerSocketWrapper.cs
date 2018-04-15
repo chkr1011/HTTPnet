@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace HTTPnet.Core.Communication
+namespace HTTPnet.Communication
 {
     public interface IServerSocketWrapper : IDisposable
     {

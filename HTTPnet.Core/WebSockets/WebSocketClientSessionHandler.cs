@@ -2,19 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using HTTPnet.Core.Communication;
-using HTTPnet.Core.WebSockets.Protocol;
+using HTTPnet.Communication;
+using HTTPnet.WebSockets.Protocol;
 
-namespace HTTPnet.Core.WebSockets
+namespace HTTPnet.WebSockets
 {
-    public class WebSocketSession : ISessionHandler
+    public sealed class WebSocketClientSessionHandler : IClientSessionHandler
     {
         private readonly List<WebSocketFrame> _frameQueue = new List<WebSocketFrame>();
         private readonly WebSocketFrameWriter _webSocketFrameWriter;
         private readonly ClientSession _clientSession;
-        
-        public WebSocketSession(ClientSession clientSession)
+
+        private CancellationToken _cancellationToken;
+
+        public WebSocketClientSessionHandler(ClientSession clientSession)
         {
             _clientSession = clientSession ?? throw new ArgumentNullException(nameof(clientSession));
 
@@ -25,15 +28,16 @@ namespace HTTPnet.Core.WebSockets
 
         public event EventHandler Closed;
 
-        public async Task ProcessAsync()
+        public async Task ProcessAsync(CancellationToken token)
         {
-            var webSocketFrame = await new WebSocketFrameReader(_clientSession.Client.ReceiveStream).ReadAsync(_clientSession.CancellationToken).ConfigureAwait(false);
+            _cancellationToken = token;
+            var webSocketFrame = await new WebSocketFrameReader(_clientSession.Client.ReceiveStream).ReadAsync(token).ConfigureAwait(false);
             switch (webSocketFrame.Opcode)
             {
                 case WebSocketOpcode.Ping:
                     {
                         webSocketFrame.Opcode = WebSocketOpcode.Pong;
-                        await _webSocketFrameWriter.WriteAsync(webSocketFrame, _clientSession.CancellationToken).ConfigureAwait(false);
+                        await _webSocketFrameWriter.WriteAsync(webSocketFrame, token).ConfigureAwait(false);
                         return;
                     }
 
@@ -76,7 +80,7 @@ namespace HTTPnet.Core.WebSockets
             {
                 Opcode = WebSocketOpcode.Text,
                 Payload = Encoding.UTF8.GetBytes(text)
-            }, _clientSession.CancellationToken).ConfigureAwait(false);
+            }, _cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SendAsync(byte[] data)
@@ -87,7 +91,7 @@ namespace HTTPnet.Core.WebSockets
             {
                 Opcode = WebSocketOpcode.Binary,
                 Payload = data
-            }, _clientSession.CancellationToken).ConfigureAwait(false);
+            }, _cancellationToken).ConfigureAwait(false);
         }
 
         private WebSocketMessage GenerateMessage()
@@ -145,6 +149,11 @@ namespace HTTPnet.Core.WebSockets
                     }
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            _clientSession?.Dispose();
         }
     }
 }

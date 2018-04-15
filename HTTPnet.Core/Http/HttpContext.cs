@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using HTTPnet.Core.Communication;
-using HTTPnet.Core.Http.Raw;
+using HTTPnet.Communication;
+using HTTPnet.Http.Raw;
 
-namespace HTTPnet.Core.Http
+namespace HTTPnet.Http
 {
     public class HttpContext
     {
-        public HttpContext(RawHttpRequest request, RawHttpResponse response, ClientSession clientSession, HttpSessionHandler sessionHandler)
+        public HttpContext(RawHttpRequest request, RawHttpResponse response, ClientSession clientSession)
         {
             ClientSession = clientSession ?? throw new ArgumentNullException(nameof(clientSession));
-            SessionHandler = sessionHandler ?? throw new ArgumentNullException(nameof(sessionHandler));
             Request = request ?? throw new ArgumentNullException(nameof(request));
             Response = response ?? throw new ArgumentNullException(nameof(response));
         }
@@ -19,7 +18,9 @@ namespace HTTPnet.Core.Http
         public RawHttpResponse Response { get; }
 
         public Dictionary<string, object> Properties { get; } = new Dictionary<string, object>();
-        public HttpSessionHandler SessionHandler { get; }
+
+        public bool CompressResponseIfSupported { get; set; } = true;
+
         public ClientSession ClientSession { get; }
         public bool CloseConnection { get; set; }
     }

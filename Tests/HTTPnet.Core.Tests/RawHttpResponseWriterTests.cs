@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using HTTPnet.Core.Http;
-using HTTPnet.Core.Http.Raw;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
+using HTTPnet.Http;
+using HTTPnet.Http.Raw;
 
 namespace HTTPnet.Core.Tests
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HTTPnet.Core.Exceptions
+namespace HTTPnet.Exceptions
 {
     public class HttpRequestInvalidException : Exception
     {

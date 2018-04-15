@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $.ajax({
+                    method: "post",
+                    url: "http://localhost/hello",
+                    success: function( result ) {
+                        $( "#weather-temp" ).html( "<strong>" + result + "</strong> degrees" );
+                    },
+                    data: {x: "y"}
+                    });
+            });
+        </script>
+    </head>
+    <body>
+
+
+        <button>Test</button>
+
+
+    </body>
+</html>

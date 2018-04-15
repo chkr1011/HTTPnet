@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HTTPnet.Core.WebSockets.Protocol
+namespace HTTPnet.WebSockets.Protocol
 {
     public class WebSocketFrameWriter
     {

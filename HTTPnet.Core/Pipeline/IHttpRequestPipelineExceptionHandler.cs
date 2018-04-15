@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HTTPnet.Core.Http;
+using HTTPnet.Http;
 
-namespace HTTPnet.Core.Pipeline
+namespace HTTPnet.Pipeline
 {
-    public interface IHttpContextPipelineExceptionHandler
+    public interface IHttpRequestPipelineExceptionHandler
     {
         Task HandleExceptionAsync(HttpContext httpContext, Exception exception);
     }

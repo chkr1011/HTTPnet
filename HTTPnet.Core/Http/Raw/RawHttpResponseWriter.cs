@@ -4,16 +4,16 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HTTPnet.Core.Http.Raw
+namespace HTTPnet.Http.Raw
 {
     public class RawHttpResponseWriter
     {
-        private readonly Stream _sendStream;
+        private readonly Stream _stream;
         private readonly HttpServerOptions _options;
 
-        public RawHttpResponseWriter(Stream sendStream, HttpServerOptions options)
+        public RawHttpResponseWriter(Stream stream, HttpServerOptions options)
         {
-            _sendStream = sendStream ?? throw new ArgumentNullException(nameof(sendStream));
+            _stream = stream ?? throw new ArgumentNullException(nameof(stream));
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
@@ -23,26 +23,31 @@ namespace HTTPnet.Core.Http.Raw
             if (cancellationToken == null) throw new ArgumentNullException(nameof(cancellationToken));
 
             var buffer = new StringBuilder();
-            buffer.AppendLine(response.Version + " " + response.StatusCode + " " + response.ReasonPhrase);
+            buffer.Append(response.Version == HttpVersion.Version1_1 ? "HTTP/1.1" : "HTTP/1.0");
 
-            foreach (var header in response.Headers)
+            buffer.AppendLine(" " + response.StatusCode + " " + response.ReasonPhrase);
+
+            if (response.Headers != null)
             {
-                buffer.AppendLine(header.Key + ":" + header.Value);
+                foreach (var header in response.Headers)
+                {
+                    buffer.AppendLine(header.Key + ":" + header.Value);
+                }
             }
 
             buffer.AppendLine();
 
-            var binaryBuffer = Encoding.UTF8.GetBytes(buffer.ToString());
-
-            await _sendStream.WriteAsync(binaryBuffer, 0, binaryBuffer.Length, cancellationToken).ConfigureAwait(false);
+            var binaryBuffer = Encoding.ASCII.GetBytes(buffer.ToString());
+            await _stream.WriteAsync(binaryBuffer, 0, binaryBuffer.Length, cancellationToken).ConfigureAwait(false);
+            await _stream.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             if (response.Body != null && response.Body.Length > 0)
             {
                 response.Body.Position = 0;
-                await response.Body.CopyToAsync(_sendStream, _options.SendBufferSize, cancellationToken).ConfigureAwait(false);
+                await response.Body.CopyToAsync(_stream, 81920, cancellationToken).ConfigureAwait(false);
             }
 
-            await _sendStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            await _stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

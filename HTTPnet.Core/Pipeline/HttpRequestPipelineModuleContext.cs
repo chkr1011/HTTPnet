@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using HTTPnet.Core.Http;
+using HTTPnet.Http;
 
-namespace HTTPnet.Core.Pipeline
+namespace HTTPnet.Pipeline
 {
-    public class HttpContextPipelineHandlerContext
+    public class HttpRequestPipelineModuleContext
     {
-        public HttpContextPipelineHandlerContext(HttpContext httpContext)
+        public HttpRequestPipelineModuleContext(HttpContext httpContext)
         {
             HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
         }

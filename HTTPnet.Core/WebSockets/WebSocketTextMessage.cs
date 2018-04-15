@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HTTPnet.Core.WebSockets
+namespace HTTPnet.WebSockets
 {
     public class WebSocketTextMessage : WebSocketMessage
     {

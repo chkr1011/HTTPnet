@@ -1,11 +1,8 @@
 ﻿using System.IO;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
-using HTTPnet.Core.Communication;
-using HTTPnet.Core.Http;
-using HTTPnet.Core.Http.Raw;
-using HTTPnet.Core.Pipeline;
-using HTTPnet.Core.Pipeline.Handlers;
+using HTTPnet.Http.Raw;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace HTTPnet.Core.Tests
@@ -17,14 +14,14 @@ namespace HTTPnet.Core.Tests
         public void HttpRequestReader_ParseWithoutContentLength()
         {
             var buffer = new MemoryStream(Encoding.UTF8.GetBytes(GetRequestTextWithoutContentLength())) { Position = 0 };
-            var parser = new RawHttpRequestReader(buffer, new HttpServerOptions());
+            var parser = new RawHttpRequestReader(buffer);
 
             var request = parser.ReadAsync(CancellationToken.None).Result;
             Assert.IsTrue(request != null, "Parse failed.");
             Assert.AreEqual(HttpMethod.Delete, request.Method);
             Assert.AreEqual("/Uri%20/lalalo323/_/-/+/%/@/&/./~/:/#/;/,/*", request.Uri);
             Assert.AreEqual("Body123{}%!(:<>=", Encoding.UTF8.GetString(StreamToArray(request.Body)));
-            Assert.AreEqual(HttpVersion.Version1_1, request.Version);
+            Assert.AreEqual(HTTPnet.Http.HttpVersion.Version1_1, request.Version);
             Assert.AreEqual("localhost:2400", request.Headers["Host"]);
             Assert.AreEqual("keep-alive", request.Headers["Connection"]);
             Assert.AreEqual("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", request.Headers["Accept"]);
@@ -38,12 +35,10 @@ namespace HTTPnet.Core.Tests
         public void HttpRequestReader_ParseWithContentLength()
         {
             var buffer = new MemoryStream(Encoding.UTF8.GetBytes(GetRequestTextWithContentLength())) { Position = 0 };
-            var parser = new RawHttpRequestReader(buffer, new HttpServerOptions());
+            var parser = new RawHttpRequestReader(buffer);
 
             var request = parser.ReadAsync(CancellationToken.None).Result;
 
-            var bodyReader = new RequestBodyHandler();
-            
             Assert.IsTrue(request != null, "Parse failed.");
             Assert.AreEqual("Body123{}%!(:<>=", Encoding.UTF8.GetString(StreamToArray(request.Body)));
         }
