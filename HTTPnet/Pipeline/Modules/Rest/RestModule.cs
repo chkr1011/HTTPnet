@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 
-namespace HTTPnet.Pipeline.Modules.Mvc
+namespace HTTPnet.Pipeline.Modules.Rest
 {
-    public class MvcModule : IHttpRequestPipelineModule
+    public class RestModule : IHttpRequestPipelineModule
     {
         private readonly string _relativeUri;
 
-        public MvcModule(string relativeUri)
+        public RestModule(string relativeUri)
         {
             if (relativeUri != null) _relativeUri = relativeUri;
         }
@@ -17,6 +17,11 @@ namespace HTTPnet.Pipeline.Modules.Mvc
         }
 
         public Task ProcessResponseAsync(HttpRequestPipelineModuleContext context)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void RegisterController(object testController)
         {
             throw new System.NotImplementedException();
         }

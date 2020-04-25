@@ -8,9 +8,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>HTTPnet.TestApp.NetFramework</RootNamespace>
     <AssemblyName>HTTPnet.TestApp.NetFramework</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -46,15 +47,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\HTTPnet.Core\HTTPnet.csproj">
-      <Project>{26939955-72a0-41f3-a68c-f04def24e326}</Project>
-      <Name>HTTPnet</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="wwwroot\HttpTest.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\HTTPnet\HTTPnet.csproj">
+      <Project>{3ad90a0d-707b-44c5-b126-cce17a0109ac}</Project>
+      <Name>HTTPnet</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

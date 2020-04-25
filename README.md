@@ -6,14 +6,14 @@
 [![BCH compliance](https://bettercodehub.com/edge/badge/chkr1011/HTTPnet?branch=master)](https://bettercodehub.com/)
 
 # HTTPnet
-HTTPnet is a high performance .NET library for HTTP and WebSocket based communication. It provides a server and a processing pipeline for HTTP request and their responses including modules for MVC controllers, WebSocket sessions and static files.
+HTTPnet is a high performance .NET library for HTTP and WebSocket based communication. It provides a server and a processing pipeline for HTTP request and their responses including modules for REST controllers, WebSocket sessions and static files.
 
 ## Features
 * Async support
 * HTTP context pipeline for request and response processing
 * Support for WebSocket connections
 * Lightweight (only the low level implementation of HTTP, no overhead)
-* MVC controllers with parameter marshalling
+* REST controllers based on C# services with parameter marshalling
 * Module for static file hosting
 * Access to internal trace messages
 

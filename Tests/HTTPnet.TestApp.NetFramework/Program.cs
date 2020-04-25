@@ -9,6 +9,7 @@ using HTTPnet.Diagnostics;
 using HTTPnet.Http;
 using HTTPnet.Pipeline;
 using HTTPnet.Pipeline.Modules;
+using HTTPnet.Pipeline.Modules.Rest;
 using HTTPnet.Pipeline.Modules.StaticFiles;
 using HTTPnet.Pipeline.Modules.WebSockets;
 using HTTPnet.WebSockets;
@@ -26,11 +27,16 @@ namespace HTTPnet.TestApp.NetFramework
             {
                 HttpNetTrace.TraceMessagePublished += (s, e) => Console.WriteLine("[" + e.Source + "] [" + e.Level + "] [" + e.Message + "] [" + e.Exception + "]");
 
+
+                var restModule = new RestModule("api");
+                restModule.RegisterController(new TestController());
+
+
                 var pipeline = new HttpRequestPipeline(new SimpleExceptionHandler());
                 pipeline.Add(new TraceModule());
                 pipeline.Add(new WebSocketModule(SessionCreated));
                 pipeline.Add(new StaticFilesModule("app", new PhysicalStaticFilesStorage(".\\wwwroot"), new DefaultMimeTypeDetector()));
-                pipeline.Add(new SimpleHttpRequestHandler());
+                pipeline.Add(restModule);
 
                 var httpServer = new HttpServerFactory().CreateHttpServer();
                 httpServer.RequestHandler = pipeline;
@@ -125,6 +131,14 @@ namespace HTTPnet.TestApp.NetFramework
             {
                 return Task.FromResult(0);
             }
+        }
+    }
+
+    public class TestController
+    {
+        public void Ping()
+        {
+
         }
     }
 }
